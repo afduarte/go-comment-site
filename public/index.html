@@ -1,20 +1,32 @@
 <html>
 <head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/css/foundation-flex.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/css/foundation-flex.min.css"/>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
-  <input id="name" type="text"/>
-  <textarea id="message">
 
-  </textarea>
-  <button id="send" class="button">Send</button>
-  <div id="messages"></div>
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/js/foundation.min.js"></script>
-  <script src="script.js"></script>
-  <script>
-    $(document).foundation()
-  </script>
+    <div id="messages" class="column align-self-middle"></div>
+
+    <div id="new-comment">
+        <input id="name" type="text"/>
+        <textarea id="comment"></textarea>
+        <button id="send" class="button">Send</button>
+    </div>
+
+    <div id="comment-template" class="blockquote-container">
+        <div class="callout">
+            <h4 class="blockquote-title"></h4>
+            <blockquote>
+                <p class="blockquote-content"></p>
+            </blockquote>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/js/foundation.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        $(document).foundation()
+    </script>
 </body>
 </html>

@@ -1,0 +1,52 @@
+#comment-template {
+    display: none;
+}
+
+#new-comment {
+    padding: 30px 30px 0px 30px;
+    position: fixed;
+    background-color: #fff;
+    bottom: 0;
+    width: 100%;
+}
+
+.blockquote-container .callout .blockquote-title {
+    margin-left: 1rem;
+}
+
+.blockquote-container .callout blockquote {
+    quotes: "“" "”" "‘" "’  ";
+    border-left: none;
+}
+
+.blockquote-container .callout blockquote:before {
+    content: open-quote;
+    color: #8a8a8a;
+    font-size: 4em;
+    line-height: 0.1em;
+    vertical-align: -0.4em;
+}
+
+.blockquote-container .callout blockquote:after {
+    content: close-quote;
+    color: #8a8a8a;
+    font-size: 4em;
+    line-height: 0.1em;
+    vertical-align: -0.6em;
+}
+
+.blockquote-container .callout blockquote .blockquote-content {
+    display: inline;
+    color: #0a0a0a;
+}
+
+#messages {
+    padding: 30px;
+    max-height: 70%;
+    overflow-y: scroll;
+}
+
+.date.label {
+    float: right;
+    padding-top: 3px;
+}

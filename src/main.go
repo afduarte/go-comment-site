@@ -12,6 +12,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 
 	"./db"
+	"strings"
 )
 
 // Struct definition
@@ -22,6 +23,12 @@ type Message struct {
 	Name      string `json:"name"`
 	Message   string `json:"message"`
 	Timestamp int64  `json:"timestamp"`
+}
+
+type LatestComments struct {
+	Offset   int        `json:"offset"`
+	Messages []Message `json:"messages"`
+	IsEnd    bool        `json:"isEnd"`
 }
 
 var clients = make(map[*websocket.Conn]bool)
@@ -82,7 +89,9 @@ func handleConnections(writer http.ResponseWriter, request *http.Request) {
 
 		// "I'm about to lose my head."
 		if err != nil {
-			log.Printf("error reading JSON: %v", err)
+			if !strings.Contains(err.Error(), "1001") {
+				log.Printf("error reading JSON: %v", err)
+			}
 			delete(clients, ws)
 			break
 		}
@@ -158,30 +167,34 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 
 		lastKey, _ := c.Last()
 		// Prev the Cursor offset amount of times
+		lastIndex := 0
 		for i := 0; i < offset; i++ {
 
 			tempKey, val := c.Prev()
 			if val == nil {
+				lastIndex = i
 				break
 			}
 			lastKey = tempKey
 		}
 
-		var messages [5]Message
+		var messages [10]Message
 
 		lastMsgJson := b.Get(lastKey)
 
 		var lastMsg Message
 
-		json.Unmarshal(lastMsgJson,&lastMsg)
+		json.Unmarshal(lastMsgJson, &lastMsg)
 
-		messages[4] = lastMsg
+		messages[9] = lastMsg
 		//Get the latest 5 comments
-		for i := 3; i >= 0; i-- {
+		end := 0
+		for i := 8; i >= 0; i-- {
 			_, val := c.Prev()
 
 			if val == nil {
-				log.Printf("end of comments")
+				// the end is current + 1
+				end = i + 1
 				break
 			}
 
@@ -191,7 +204,18 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 			messages[i] = msg
 
 		}
-		jsonMessage, finalErr = json.Marshal(messages)
+		var response LatestComments
+		response.Messages = messages[end:]
+		if end != 0 {
+			response.IsEnd = true
+		}
+		if lastIndex != 0 {
+			response.Offset = lastIndex
+		} else {
+			response.Offset = offset
+		}
+
+		jsonMessage, finalErr = json.Marshal(response)
 		if finalErr != nil {
 			return finalErr
 		}
