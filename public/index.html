@@ -5,28 +5,49 @@
 </head>
 
 <body>
+<div id="messages" class="column align-self-middle"></div>
 
-    <div id="messages" class="column align-self-middle"></div>
-
-    <div id="new-comment">
-        <input id="name" type="text"/>
-        <textarea id="comment"></textarea>
-        <button id="send" class="button">Send</button>
-    </div>
-
-    <div id="comment-template" class="blockquote-container">
-        <div class="callout">
-            <h4 class="blockquote-title"></h4>
-            <blockquote>
-                <p class="blockquote-content"></p>
-            </blockquote>
+<div id="new-comment">
+    <div class="row expanded">
+        <div class="small-12 columns">
+            <div class="row expanded">
+                <div class="small-12 columns">
+                    <input id="name" type="text" placeholder="Name"/>
+                </div>
+                <div class="small-8 columns">
+            <textarea id="comment"
+                      placeholder="Write your comment here. We highly encourage negative criticism and it doesn't even have to be constructive"
+                      rows="5"></textarea>
+                </div>
+                <div class="small-4 columns">
+                    <input id="giphy" type="text" placeholder="Giphy Reaction"/>
+                    <button id="send" class="button" style="width: 100%;">Send</button>
+                </div>
+            </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/js/foundation.min.js"></script>
-    <script src="script.js"></script>
-    <script>
-        $(document).foundation()
-    </script>
+
+</div>
+
+<div id="comment-template" class="blockquote-container">
+    <div class="callout">
+        <h4 class="blockquote-title"></h4>
+        <div class="row expanded">
+            <div class="small-8 columns quote-holder">
+                <blockquote>
+                    <p class="blockquote-content"></p>
+                </blockquote>
+            </div>
+            <div class="small-4 columns giphy">
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/js/foundation.min.js"></script>
+<script src="script.js"></script>
+<script>
+    $(document).foundation()
+</script>
 </body>
 </html>

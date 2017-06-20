@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 	"encoding/json"
 	"strconv"
@@ -10,9 +11,11 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/boltdb/bolt"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/tidwall/gjson"
 
 	"./db"
 	"strings"
+	"io/ioutil"
 )
 
 // Struct definition
@@ -23,6 +26,7 @@ type Message struct {
 	Name      string `json:"name"`
 	Message   string `json:"message"`
 	Timestamp int64  `json:"timestamp"`
+	Giphy     string `json:"giphy"`
 }
 
 type LatestComments struct {
@@ -30,6 +34,8 @@ type LatestComments struct {
 	Messages []Message `json:"messages"`
 	IsEnd    bool        `json:"isEnd"`
 }
+
+const GIPHY_KEY string = "ec51ed70d5bf4e1385a13a256417a823"
 
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan Message)
@@ -98,6 +104,8 @@ func handleConnections(writer http.ResponseWriter, request *http.Request) {
 		msg.Name, msg.Message = p.Sanitize(msg.Name), p.Sanitize(msg.Message)
 		// Add the timestamp
 		msg.Timestamp = getTimestamp()
+
+		msg.Giphy = getGiphy(msg.Giphy)
 
 		broadcast <- msg
 	}
@@ -223,6 +231,27 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 	})
 
 	return jsonMessage, finalErr
+}
+
+func getGiphy(q string) string {
+	if len(q) <= 1 {
+		return nil
+	}
+	var gif string
+	response, err := http.Get("https://api.giphy.com/v1/gifs/random?rating=R&api_key=" + GIPHY_KEY + "&tag=" + url.QueryEscape(q))
+	if err != nil {
+		log.Printf("Giphy GET error: %v", err)
+	} else {
+		defer response.Body.Close()
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Printf("error getting response body: %v", err)
+		}
+		value := gjson.Get(string(body), "data.fixed_width_downsampled_url")
+		gif = value.String()
+	}
+
+	return gif
 }
 
 // Methods
