@@ -235,7 +235,7 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 
 func getGiphy(q string) string {
 	if len(q) <= 1 {
-		return nil
+		return ""
 	}
 	var gif string
 	response, err := http.Get("https://api.giphy.com/v1/gifs/random?rating=R&api_key=" + GIPHY_KEY + "&tag=" + url.QueryEscape(q))
