@@ -49,7 +49,7 @@ var bucketName = []byte("comments")
 // Main function
 func main() {
 	// Serving files
-	fs := http.FileServer(http.Dir("../public"))
+	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
 	//Web socket
@@ -127,13 +127,15 @@ func handleGetComments(writer http.ResponseWriter, request *http.Request) {
 	}
 	jsonMsg, err := getLatest(db.BoltDB, offset)
 	if err != nil {
+		log.Printf("error: %v", err)
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusInternalServerError)
 		writer.Write([]byte("{\"error\":\"Error Retrieving latest\"}"))
+	} else {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		writer.Write(jsonMsg)
 	}
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusOK)
-	writer.Write(jsonMsg)
 }
 
 // Helper functions
@@ -163,14 +165,27 @@ func getTimestamp() int64 {
 	return time.Now().Round(time.Millisecond).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }
 
-// return the latest 5 messages, taking into account the offset
+// return the latest 10 messages, taking into account the offset
 func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 	var jsonMessage []byte
 	var finalErr error
-	database.View(func(tx *bolt.Tx) error {
+	finalErr = database.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
-		b := tx.Bucket(bucketName)
-
+		b:= tx.Bucket(bucketName)
+		stats := b.Stats()
+		var response LatestComments
+		if stats.KeyN < 1 {
+			response = LatestComments{
+				Messages: []Message{},
+				Offset:   0,
+				IsEnd:    true,
+			}
+			jsonMessage, finalErr = json.Marshal(response)
+			if finalErr != nil {
+				return finalErr
+			}
+			return nil
+		}
 		c := b.Cursor()
 
 		lastKey, _ := c.Last()
@@ -180,7 +195,7 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 
 			tempKey, val := c.Prev()
 			if val == nil {
-				lastIndex = i
+				lastIndex = i+1
 				break
 			}
 			lastKey = tempKey
@@ -212,7 +227,7 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 			messages[i] = msg
 
 		}
-		var response LatestComments
+
 		response.Messages = messages[end:]
 		if end != 0 {
 			response.IsEnd = true
@@ -229,7 +244,6 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 		}
 		return nil
 	})
-
 	return jsonMessage, finalErr
 }
 
@@ -247,7 +261,8 @@ func getGiphy(q string) string {
 		if err != nil {
 			log.Printf("error getting response body: %v", err)
 		}
-		value := gjson.Get(string(body), "data.fixed_width_downsampled_url")
+		//value := gjson.Get(string(body), "data.fixed_width_downsampled_url")
+		value := gjson.Get(string(body), "data.image_url")
 		gif = value.String()
 	}
 

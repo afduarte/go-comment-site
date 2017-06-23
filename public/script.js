@@ -11,7 +11,8 @@ $(function () {
         var msg = JSON.parse(event.data);
         addComments([msg]);
     };
-    $('#send').on('click', function () {
+    $('#send').on('click', function (e) {
+        e.preventDefault();
         socket.send(JSON.stringify({
             name: $('#name').val(),
             message: $('#comment').val(),
@@ -27,9 +28,7 @@ $(function () {
         var pos = $(this).scrollTop();
         var height = $(this).get(0).scrollHeight;
         var toBottom = height - pos - $(this).height();
-        console.log(toBottom);
         if (Math.floor(toBottom) <= 300) {
-            console.log('bottom');
             if (!window.loading && !window.isEnd) {
                 window.loading = true;
                 $.getJSON('get-comments?offset=' + window.offset)
@@ -41,6 +40,12 @@ $(function () {
             }
         }
     })
+
+    setInterval(function(){
+        $('.blockquote-container').each(function(){
+            $(this).find('span.label.date').text(ago(parseInt($(this).attr('id'))))
+        })
+    },3000)
 });
 
 function createWebSocket(path) {
@@ -54,22 +59,18 @@ function addComments(messages, append) {
         var msg = messages[m];
 
         var container = $('#comment-template').clone();
-        container.attr('id', '');
+        container.attr('id', msg.timestamp);
         container.find('.blockquote-title').text(msg.name)
             .append('<span class="label secondary date">' + ago(msg.timestamp) + '</span>');
-        if (msg.giphy) {
-            container.find('.giphy').append('<img src="' + msg.giphy + '"/>')
-        } else {
-            container.find('.giphy').remove();
-            var quote = container.find('.quote-holder');
-            quote.removeClass('small-8');
-            quote.addClass('small-12');
-        }
         container.find('.blockquote-content').html(msg.message);
+        container.find('.blockquote-content').prepend('<img src="' + msg.giphy + '" align="right"/>');
+
+        if($('#'+msg.timestamp).length) continue;
+
         if (append) {
-            $('#messages').append(container)
+            $('#messages').append(container);
         } else {
-            $('#messages').prepend(container)
+            $('#messages').prepend(container);
         }
 
     }
@@ -87,6 +88,7 @@ function ago(previous) {
     };
 
     var elapsed = Date.now() - previous;
+    if(elapsed <5000) return 'just now'
 
     var number;
     var unit;
