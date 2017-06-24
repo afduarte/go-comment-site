@@ -85,7 +85,9 @@ func handleConnections(writer http.ResponseWriter, request *http.Request) {
 	// Upgrade the request we got to a websocket
 	ws, err := upgrader.Upgrade(writer, request, nil)
 	if err != nil {
-		log.Fatal("Error Upgrading", err)
+		log.Printf("Error Upgrading %v", err)
+		ws.Close()
+		return
 	}
 	// Close the websocket connection when done
 	defer ws.Close()
