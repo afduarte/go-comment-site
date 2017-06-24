@@ -23,6 +23,22 @@ $(function () {
         $('#comment').val('');
         $('#giphy').val('');
     });
+    $('body').on('click', '.upvote', function (e) {
+        var btn = $(this);
+        if (btn.hasClass('voted')) return;
+        var id = $(this).parents('.blockquote-container').attr('id');
+        console.log('upvoting ' + id);
+        $.getJSON('upvote?id=' + id)
+            .done(function (msg) {
+                console.log(msg);
+                btn.removeClass('fa-arrow-circle-o-up');
+                btn.addClass('fa-check-circle-o');
+                btn.addClass('voted');
+                if (!msg.error && msg.upvotes) {
+                    $('#' + msg.timestamp + ' .upvotes span').text(formatVotes(msg.upvotes));
+                }
+            })
+    });
     //detects when user reaches the end
     $('#messages').on("scroll", function () {
         var pos = $(this).scrollTop();
@@ -39,13 +55,23 @@ $(function () {
                     });
             }
         }
-    })
+    });
 
-    setInterval(function(){
-        $('.blockquote-container').each(function(){
+    $('#show-comment').on('click', function () {
+        $(this).hide('fade');
+        $('#new-comment').removeClass('hidden');
+    });
+
+    $('#hide-comment').on('click', function () {
+        $('#new-comment').addClass('hidden');
+        $('#show-comment').show('fade');
+    });
+
+    setInterval(function () {
+        $('.blockquote-container').each(function () {
             $(this).find('span.label.date').text(ago(parseInt($(this).attr('id'))))
         })
-    },3000)
+    }, 3000)
 });
 
 function createWebSocket(path) {
@@ -60,12 +86,15 @@ function addComments(messages, append) {
 
         var container = $('#comment-template').clone();
         container.attr('id', msg.timestamp);
-        container.find('.blockquote-title').text(msg.name)
+        container.find('.blockquote-title').html(twemoji.parse(msg.name))
             .append('<span class="label secondary date">' + ago(msg.timestamp) + '</span>');
-        container.find('.blockquote-content').html(msg.message);
-        container.find('.blockquote-content').prepend('<img src="' + msg.giphy + '" align="right"/>');
+        container.find('.blockquote-content').html(twemoji.parse(msg.message));
+        container.find('.upvotes span').text(msg.upvotes);
+        if (msg.giphy) {
+            container.find('.giphy').append('<img src="' + msg.giphy + '" align="right"/>');
+        }
 
-        if($('#'+msg.timestamp).length) continue;
+        if ($('#' + msg.timestamp).length) continue;
 
         if (append) {
             $('#messages').append(container);
@@ -74,6 +103,10 @@ function addComments(messages, append) {
         }
 
     }
+    var all = $('#messages .blockquote-container').sort(function (a, b) {
+        return parseInt($(b).attr('id')) - parseInt($(a).attr('id'))
+    });
+    $('#messages').html(all)
 }
 
 function ago(previous) {
@@ -82,13 +115,16 @@ function ago(previous) {
     var msPerHour = msPerMinute * 60;
     var msPerDay = msPerHour * 24;
     var dateOpts = {
-        weekday: 'long',
+        day: 'numeric',
         hour: 'numeric',
-        minute: 'numeric'
+        minute: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+
     };
 
     var elapsed = Date.now() - previous;
-    if(elapsed <5000) return 'just now'
+    if (elapsed < 5000) return 'just now';
 
     var number;
     var unit;
@@ -115,4 +151,12 @@ function ago(previous) {
     }
 
     return number + ' ' + unit + (number > 1 ? 's' : '') + ' ago';
+}
+
+function formatVotes(votes) {
+    var number = parseInt(votes);
+    if (number >= 1000000) return Math.floor(number / 1000000) + 'M';
+    if (number >= 1000) return Math.floor(number / 1000) + 'k';
+    return number
+
 }

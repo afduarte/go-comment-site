@@ -16,6 +16,7 @@ import (
 	"./db"
 	"strings"
 	"io/ioutil"
+	"errors"
 )
 
 // Struct definition
@@ -27,6 +28,7 @@ type Message struct {
 	Message   string `json:"message"`
 	Timestamp int64  `json:"timestamp"`
 	Giphy     string `json:"giphy"`
+	Upvotes   int    `json:"upvotes"`
 }
 
 type LatestComments struct {
@@ -57,6 +59,9 @@ func main() {
 
 	//Get comments route
 	http.HandleFunc("/get-comments", handleGetComments)
+
+	//Upvote
+	http.HandleFunc("/upvote", handleUpvote)
 
 	// Database (using bolt)
 	db.Connect()
@@ -138,6 +143,27 @@ func handleGetComments(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// Handle Upvotes
+func handleUpvote(writer http.ResponseWriter, request *http.Request) {
+	id := request.URL.Query().Get("id")
+	if len(id) != 0 {
+		jsonMsg, err := upvote(db.BoltDB, id)
+		if err == nil {
+			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK)
+			writer.Write([]byte(jsonMsg))
+		} else {
+			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusNotFound)
+			writer.Write([]byte("{error:\"ID: " + id + " NOT FOUND\"}"))
+		}
+	} else {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("{error:\"ID PARAMETER MISSING\""))
+	}
+}
+
 // Helper functions
 
 // Handle messages sent from client
@@ -171,7 +197,7 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 	var finalErr error
 	finalErr = database.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
-		b:= tx.Bucket(bucketName)
+		b := tx.Bucket(bucketName)
 		stats := b.Stats()
 		var response LatestComments
 		if stats.KeyN < 1 {
@@ -195,7 +221,7 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 
 			tempKey, val := c.Prev()
 			if val == nil {
-				lastIndex = i+1
+				lastIndex = i + 1
 				break
 			}
 			lastKey = tempKey
@@ -245,6 +271,34 @@ func getLatest(database *bolt.DB, offset int) ([]byte, error) {
 		return nil
 	})
 	return jsonMessage, finalErr
+}
+
+func upvote(database *bolt.DB, id string) ([]byte, error) {
+	var jsonMsg []byte
+	err := database.Update(func(tx *bolt.Tx) error {
+		key := []byte(id)
+		b := tx.Bucket(bucketName)
+		val := b.Get(key)
+		var err error
+		if val == nil {
+			return errors.New("UPVOTE: ID not found: " + id)
+		}
+		var msg Message
+		json.Unmarshal(val, &msg)
+		msg.Upvotes++
+		jsonMsg, err = json.Marshal(msg)
+		if err != nil {
+			log.Printf("UPVOTE: Error encoding message: %v", err)
+			return err
+		}
+		err = b.Put(key, jsonMsg)
+		if err != nil {
+			log.Printf("UPVOTE: Error saving message: %v", err)
+			return err
+		}
+		return nil
+	})
+	return jsonMsg, err
 }
 
 func getGiphy(q string) string {

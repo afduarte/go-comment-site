@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width"/>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/css/foundation-flex.min.css"/>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
 <div id="messages" class="column align-self-middle"></div>
-
-<div id="new-comment">
+<i id="show-comment" class="fa fa-4x fa-plus-circle" title="New Comment" aria-hidden="true"></i>
+<div id="new-comment" class="hidden">
     <form>
         <div class="row expanded">
-            <div class="small-8 columns">
+            <div class="small-4 medium-7 columns">
                 <input id="name" type="text" placeholder="Name"/>
             </div>
-            <div class="small-4 columns">
-                <input id="giphy" type="text" placeholder="1 word"/>
+            <div class="small-7 medium-4 columns">
+                <input id="giphy" type="text" placeholder="Reaction (Giphy)"/>
             </div>
-            <div class="small-12 medium-8 columns">
+            <div class="small-1 medium-1 columns">
+                <i id="hide-comment" class="fa fa-2x fa-times-circle-o"></i>
+            </div>
+            <div class="small-12 medium-7 columns">
             <textarea id="comment"
                       placeholder="Write your comment here."
                       rows="2"></textarea>
@@ -33,18 +37,29 @@
 
 <div id="comment-template" class="blockquote-container">
     <div class="callout">
-        <h4 class="blockquote-title"></h4>
         <div class="row expanded">
-            <div class="small-12 columns quote-holder">
-                <blockquote>
-                    <p class="blockquote-content"></p>
-                </blockquote>
+            <div class="small-1 columns upvotes">
+                <i class="fa fa-2x fa-arrow-circle-o-up upvote" aria-hidden="true"></i>
+                <span></span>
+            </div>
+            <div class="small-11 columns">
+                <h4 class="blockquote-title"></h4>
+                <div class="row expanded">
+                    <div class="medium-6 small-12 columns quote-holder">
+                        <blockquote>
+                            <p class="blockquote-content"></p>
+                        </blockquote>
+                    </div>
+                    <div class="medium-6 small-12 columns giphy"></div>
+                </div>
             </div>
         </div>
+
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/js/foundation.min.js"></script>
+<script src="//twemoji.maxcdn.com/twemoji.min.js"></script>
 <script src="script.js"></script>
 <script>
     $(document).foundation()

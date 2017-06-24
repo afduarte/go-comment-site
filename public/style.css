@@ -10,6 +10,11 @@
     bottom: 0;
     width: 100%;
     height: 30%;
+    transition: all 500ms ease-in-out;
+}
+
+#new-comment.hidden {
+    transform: translate(0, 1000px);
 }
 
 .blockquote-container .callout .blockquote-title {
@@ -50,7 +55,7 @@
     width: 100%;
     position: fixed;
     padding: 20px;
-    height: 70%;
+    height: 100%;
     overflow-y: scroll;
 }
 
@@ -59,6 +64,51 @@
     padding-top: 3px;
     line-height: 1.4;
     font-size: 1.3rem;
+}
+
+.upvotes {
+    padding: 0;
+    text-align: center;
+}
+
+.upvotes span {
+    display: block;
+}
+
+.upvote.voted {
+    color: #008604;
+}
+
+#hide-comment {
+    color: #ff6666;
+}
+
+#show-comment {
+    color: #6666ff;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+
+/*
+ * SCROLLBAR
+ */
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #000c49;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #fff;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
 }
 
 @media only screen and (max-width: 500px) {
