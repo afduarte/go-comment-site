@@ -44,7 +44,11 @@ var broadcast = make(chan Message)
 
 var p = bluemonday.UGCPolicy()
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	CheckOrigin:func(r *http.Request) bool{
+		return true
+	},
+}
 
 var bucketName = []byte("comments")
 
